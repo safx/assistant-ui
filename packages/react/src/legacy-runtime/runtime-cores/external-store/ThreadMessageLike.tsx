@@ -22,6 +22,31 @@ import {
 } from "../../../types/AssistantTypes";
 import { ReadonlyJSONObject, ReadonlyJSONValue } from "assistant-stream/utils";
 
+// Flexible step type for backward compatibility with legacy formats
+export type ThreadStepLike =
+  | ThreadStep
+  | {
+      readonly usage?: {
+        readonly promptTokens: number;
+        readonly completionTokens: number;
+      };
+    };
+
+// Normalize ThreadStepLike to ThreadStep (convert legacy format)
+const normalizeStep = (step: ThreadStepLike): ThreadStep => {
+  if ("state" in step) {
+    return step;
+  }
+  // Legacy format: convert to finished state
+  return {
+    state: "finished",
+    messageId: generateId(),
+    finishReason: "unknown",
+    ...(step.usage && { usage: step.usage }),
+    isContinued: false,
+  };
+};
+
 export type ThreadMessageLike = {
   readonly role: "assistant" | "user" | "system";
   readonly content:
@@ -58,7 +83,7 @@ export type ThreadMessageLike = {
           | readonly ReadonlyJSONValue[]
           | undefined;
         readonly unstable_data?: readonly ReadonlyJSONValue[] | undefined;
-        readonly steps?: readonly ThreadStep[] | undefined;
+        readonly steps?: readonly ThreadStepLike[] | undefined;
         readonly submittedFeedback?: { readonly type: "positive" | "negative" };
         readonly custom?: Record<string, unknown> | undefined;
       }
@@ -166,7 +191,7 @@ export const fromThreadMessageLike = (
           unstable_annotations: metadata?.unstable_annotations ?? [],
           unstable_data: metadata?.unstable_data ?? [],
           custom: metadata?.custom ?? {},
-          steps: metadata?.steps ?? [],
+          steps: (metadata?.steps ?? []).map(normalizeStep),
           ...(metadata?.submittedFeedback && {
             submittedFeedback: metadata.submittedFeedback,
           }),

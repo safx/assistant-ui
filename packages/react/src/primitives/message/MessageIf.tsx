@@ -16,6 +16,7 @@ type MessageIfFilters = {
   hasAttachments: boolean | undefined;
   hasContent: boolean | undefined;
   submittedFeedback: "positive" | "negative" | null | undefined;
+  betweenSteps: boolean | undefined;
 };
 type UseMessageIfProps = RequireAtLeastOne<MessageIfFilters>;
 
@@ -68,6 +69,16 @@ const useMessageIf = (props: UseMessageIfProps) => {
         props.submittedFeedback
     )
       return false;
+
+    if (props.betweenSteps !== undefined) {
+      const isBetweenSteps =
+        role === "assistant" &&
+        message.status.type === "running" &&
+        message.metadata.steps.length > 0 &&
+        message.metadata.steps[message.metadata.steps.length - 1]?.state ===
+          "finished";
+      if (props.betweenSteps !== isBetweenSteps) return false;
+    }
 
     return true;
   });

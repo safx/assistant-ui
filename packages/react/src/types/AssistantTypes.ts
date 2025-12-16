@@ -35,15 +35,28 @@ type MessageCommonProps = {
   readonly createdAt: Date;
 };
 
-export type ThreadStep = {
-  readonly messageId?: string;
-  readonly usage?:
-    | {
+export type ThreadStep =
+  | {
+      readonly state: "started";
+      readonly messageId: string;
+    }
+  | {
+      readonly state: "finished";
+      readonly messageId: string;
+      readonly finishReason:
+        | "stop"
+        | "length"
+        | "content-filter"
+        | "tool-calls"
+        | "error"
+        | "other"
+        | "unknown";
+      readonly usage?: {
         readonly promptTokens: number;
         readonly completionTokens: number;
-      }
-    | undefined;
-};
+      };
+      readonly isContinued: boolean;
+    };
 
 export type MessagePartStatus =
   | {

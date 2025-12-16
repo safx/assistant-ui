@@ -233,6 +233,13 @@ const AssistantMessage: FC = () => {
           }}
         />
         <MessageError />
+
+        <MessagePrimitive.If betweenSteps>
+          <div className="aui-between-steps-indicator fade-in mt-2 flex animate-in items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2 text-muted-foreground text-sm duration-200">
+            <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
+            <span>次のステップを待っています...</span>
+          </div>
+        </MessagePrimitive.If>
       </div>
 
       <div className="aui-assistant-message-footer mt-2 ml-2 flex">
